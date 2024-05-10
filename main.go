@@ -1,24 +1,16 @@
 package main
 
 import (
-	"fmt"
-	. "main/logic"
-	. "main/logic/generator"
-	. "main/logic/storage"
+	"main/logic"
+	"main/logic/generator"
+	"main/logic/storage"
+	"main/ui/web"
 )
 
 func main() {
-	storage := NewStorage("123")
-	generator := NewGenerator()
-	wordle := NewWordle(storage, generator)
-
-	var att string = "aeaea"
-	result, err := wordle.Attempt(&att)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(result)
+	storage := storage.NewStorage("123")
+	generator := generator.NewGenerator()
+	logic := logic.NewWordle(storage, generator)
+	web := web.NewWordleUi(logic)
+	web.Start()
 }

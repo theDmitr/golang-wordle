@@ -14,18 +14,21 @@ const (
 )
 
 type WordleGame struct {
-	word     string
-	attempts byte
+	storage   IWordStorage
+	generator IGenerator
+	word      string
+	attempts  byte
 }
 
 func NewWordle(storage IWordStorage, generator IGenerator) *WordleGame {
 	wordle := new(WordleGame)
-	wordle.word = *generator.GenerateWord(storage)
-	wordle.attempts = 6
+	wordle.storage = storage
+	wordle.generator = generator
+	wordle.Regenerate()
 	return wordle
 }
 
-func (wordle *WordleGame) Attempt(attemptWord *string) (*map[int]int, error) {
+func (wordle *WordleGame) Attempt(attemptWord *string) (*[]int, error) {
 	if wordle.attempts == 0 {
 		return nil, errors.New("attempts are over")
 	}
@@ -34,18 +37,23 @@ func (wordle *WordleGame) Attempt(attemptWord *string) (*map[int]int, error) {
 		return nil, errors.New("word length invalid")
 	}
 
-	resultMap := make(map[int]int)
+	result := make([]int, len(wordle.word))
 
 	for i := 0; i < len(wordle.word); i++ {
 		if wordle.word[i] == (*attemptWord)[i] {
-			resultMap[i] = letterStateRight
+			result[i] = letterStateRight
 		} else if strings.Contains(wordle.word, string((*attemptWord)[i])) {
-			resultMap[i] = letterStateExists
+			result[i] = letterStateExists
 		} else {
-			resultMap[i] = letterStateAbsent
+			result[i] = letterStateAbsent
 		}
 	}
 
 	wordle.attempts--
-	return &resultMap, nil
+	return &result, nil
+}
+
+func (wordle *WordleGame) Regenerate() {
+	wordle.word = *wordle.generator.GenerateWord(wordle.storage)
+	wordle.attempts = 6
 }
